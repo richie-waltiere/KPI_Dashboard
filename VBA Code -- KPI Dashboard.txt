@@ -1,0 +1,43 @@
+Option Explicit
+
+Sub GenerateAlertReport()
+  Dim ws As Worksheet
+  Dim wsAlert As Worksheet
+  Dim tbl As ListObject
+  Dim row As ListRow
+  Dim colIndex As Long
+  Dim i As Long
+  
+  For Each ws In ThisWorkbook.Worksheets
+    If StrComp(ws.Name, "Alert Report", vbBinaryCompare) = 0 Then
+      MsgBox "Alert Report already exists. " & vbNewLine & vbNewLine & _
+      "Want to generate a new report?" & vbNewLine & _
+      "Delete or rename Alert Report to continue.", vbInformation
+      Exit Sub
+    End If
+  Next ws
+  
+  Set ws = ThisWorkbook.Sheets.Add(after:=ThisWorkbook.Sheets(ThisWorkbook.Sheets.Count))
+  ws.Name = "Alert Report"
+  Set wsAlert = ThisWorkbook.Sheets("Alert Report")
+  
+  Set ws = ThisWorkbook.Sheets("KPI Data")
+  Set tbl = ws.ListObjects("KPI_Data")
+  colIndex = tbl.ListColumns("Status").Index
+  
+  tbl.HeaderRowRange.Copy
+  wsAlert.Range("A1").PasteSpecial Paste:=xlPasteAll
+  
+  i = 2
+  For Each row In tbl.ListRows
+    If row.Range(colIndex) = "Critical" Then
+      row.Range.Copy
+      wsAlert.Range("A" & i).PasteSpecial Paste:=xlPasteAll
+      i = i + 1
+    End If
+  Next row
+  
+  Application.CutCopyMode = False
+  
+  MsgBox "Alert Report Generated", vbInformation
+End Sub
